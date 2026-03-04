@@ -1,0 +1,166 @@
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        background-color: var(--bs-primary);
+    }
+
+    .outer-diamond {
+        float: right;
+        height: 15.5rem !important;
+        width: 15.5rem !important;
+        position: absolute;
+        right: 5%;
+        bottom: 10%;
+    }
+
+    * {
+        font-size: small !important;
+    }
+
+    h1,
+    h1 span,
+    h1 p,
+    h1 p span {
+        font-size: 1.75rem !important;
+    }
+
+    p span {
+        font-size: medium !important;
+    }
+
+    p .keepsmall {
+        font-size: small !important;
+    }
+
+    #rotatewrapper {
+        right: -3rem !important;
+        top: -16.8rem !important;
+
+    }
+
+    #rotatedDivs #rotatedTop {
+        width: 7.5rem !important;
+    }
+
+    #rotatedDivs #rotatedBottom {
+        width: 7.5rem !important;
+    }
+    #rotatedimg {
+        width: 7.5rem !important;
+        height: 7.5rem !important;
+    }
+}
+
+html,
+body {
+    scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+    width: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+.nav-link {
+    color: #fff;
+    margin-left: 0.625rem;
+}
+
+.reveal {
+    opacity: 0;
+    transform: translateY(35px);
+    transition: all 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.outer-diamond {
+    width: 22.25rem;
+    /* Slightly larger than inner */
+    height: 22.25rem;
+    position: relative;
+    transform: rotate(45deg);
+    border-top: 8px solid #6d95d1;
+    border-right: 8px solid #6d95d1;
+}
+
+
+.diamond-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 141.42%;
+    height: 141.42%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    overflow: hidden;
+}
+
+.diamond-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.diamond-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+#rotatedTop {
+    background-color: #bbd4ff;
+    height: 18rem;
+    width: 14rem;
+    border-bottom: 0.5rem solid #fff;
+}
+
+#rotatedimg {
+    position: relative;
+    margin-top: 0.2rem;
+    margin-bottom: 0.7rem;
+    width: 14rem;
+    height: 14rem;
+    overflow: hidden;
+}
+
+#rotatedimg .rotated-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 145.42%;
+    height: 142.42%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    overflow: hidden;
+}
+
+#rotatedimg .rotated-inner img {
+    width: 100%;
+    height: 100%;
+}
+
+#rotatedBottom {
+    height: 30rem;
+    width: 14rem;
+    border: 0.5rem solid #bbd4ff
+}
+
+#rotatewrapper {
+    position: absolute;
+    transform: rotate(-45deg);
+    z-index: -5;
+    right: -2rem;
+    top: -14.7rem;
+}
+
+@media (min-width: 992px) and (max-width: 1375px) {
+    .outer-diamond {
+        height: 16.5rem !important;
+        width: 16.5rem !important;
+    }
+}
