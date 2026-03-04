@@ -13,7 +13,7 @@ FROM php:8.4-fpm-alpine
 RUN apk add --no-cache \
     git curl unzip libpq-dev oniguruma-dev libzip-dev \
     nginx supervisor bash \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip
+    && docker-php-ext-install pdo pdo_pgsql mbstring zip
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
