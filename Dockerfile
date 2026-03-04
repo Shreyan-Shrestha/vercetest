@@ -9,15 +9,30 @@ RUN npm run build
 # Stage 2 - Production (Nginx + PHP-FPM)
 FROM php:8.4-fpm-alpine
 
-# Install system dependencies with more options
+# Install system dependencies - only packages available in Alpine
 RUN apk add --no-cache \
-    git curl unzip libpq-dev oniguruma-dev libzip-dev \
-    nginx supervisor bash postgresql-client \
-    icu-dev libxml2-dev libxslt-dev \
-    && docker-php-ext-configure intl \
-    && docker-php-ext-install pdo pdo_pgsql mbstring zip intl \
-    && docker-php-ext-install curl xml xmlrpc simplexml \
-    && docker-php-ext-enable pdo pdo_pgsql
+    git \
+    curl \
+    unzip \
+    bash \
+    nginx \
+    supervisor \
+    postgresql-client
+
+# Install PHP build dependencies and extensions
+RUN apk add --no-cache --virtual .build-deps \
+    libpq-dev \
+    oniguruma-dev \
+    libzip-dev
+
+RUN docker-php-ext-install \
+    pdo \
+    pdo_pgsql \
+    mbstring \
+    zip
+
+# Remove build dependencies to reduce image size
+RUN apk del .build-deps
 
 # Configure PHP for better performance
 RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory.ini && \
@@ -41,22 +56,20 @@ RUN composer install \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader \
-    --no-scripts \
-    2>&1 | tail -50
+    --no-scripts
 
 # Copy rest of the app files
 COPY . .
 
 # Copy built frontend from Stage 1
-RUN mkdir -p ./public/build
-COPY --from=frontend /app/public/build/ ./public/build/
+COPY --from=frontend /app/public/build ./public/build
 
 # Create .env for build
 RUN if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || echo "APP_KEY=" > .env; fi
 
 # Skip artisan commands that need DB connection
 # These will be run after deployment on Render
-RUN composer run-script post-autoload-dump 2>&1 | tail -20 || true
+RUN composer run-script post-autoload-dump || true
 
 # Set proper permissions
 RUN chown -R nobody:nobody /var/www && \
