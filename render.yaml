@@ -2,7 +2,7 @@ services:
   - type: web
     name: vercetest
     runtime: docker
-    plan: standard
+    plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: ./
     region: oregon
@@ -25,7 +25,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
-        value: postgres.render.com
+        value: dpg-d6k3a88gjchc739oitc0-a.onrender.com
       - key: DB_PORT
         value: "5432"
       - key: DB_DATABASE
@@ -33,7 +33,7 @@ services:
       - key: DB_USERNAME
         value: vercetest_user
       - key: DB_PASSWORD
-        value: your_secure_password
+        value: o7d0ifCmeLfR7F7VgbHmeVaAqN2vAmMM
       - key: CACHE_DRIVER
         value: file
       - key: QUEUE_CONNECTION
