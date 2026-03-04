@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Nginx Web Server
+  nginx:
+    build:
+      context: .
+      target: production
+    container_name: vercetest_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # PHP-FPM Backend
+  backend:
+    build:
+      context: .
+      target: backend
+    container_name: vercetest_backend
+    working_dir: /var/www
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-laravel}
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+    depends_on:
+      - mysql
+    networks:
+      - app_network
+    restart: unless-stopped
+    volumes:
+      - ./storage:/var/www/storage
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: vercetest_mysql
+    environment:
+      - MYSQL_DATABASE=${DB_DATABASE:-laravel}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-password}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-password}
+      - MYSQL_USER=${DB_USERNAME:-root}
+    ports:
+      - "3306:3306"
+    networks:
+      - app_network
+    restart: unless-stopped
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

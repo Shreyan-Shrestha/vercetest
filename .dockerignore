@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env.example
+.env.*.local
+docker-compose.yml
+node_modules
+vendor
+.DS_Store
+*.log
+storage/logs
+bootstrap/cache
+.vscode
+.idea
+.phpstorm.meta.php
+_ide_helper.php
+.npm
+.env

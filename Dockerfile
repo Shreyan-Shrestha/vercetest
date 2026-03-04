@@ -1,17 +1,18 @@
 # Stage 1 - Build Frontend (Vite)
-FROM node:18 AS frontend
+FROM node:18-alpine AS frontend
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
 RUN npm run build
 
-# Stage 2 - Backend (Laravel + PHP + Composer)
-FROM php:8.4-fpm AS backend
+# Stage 2 - Production (Nginx + PHP-FPM)
+FROM php:8.4-fpm-alpine
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git curl unzip libpq-dev libonig-dev libzip-dev zip \
+RUN apk add --no-cache \
+    git curl unzip libpq-dev oniguruma-dev libzip-dev \
+    nginx supervisor bash \
     && docker-php-ext-install pdo pdo_mysql mbstring zip
 
 # Install Composer
@@ -23,14 +24,30 @@ WORKDIR /var/www
 COPY . .
 
 # Copy built frontend from Stage 1
-COPY --from=frontend /app/public/dist ./public/dist
+COPY --from=frontend /app/public/build ./public/build
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader && \
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache
 
-# Laravel setup
-RUN php artisan config:clear && \
-    php artisan route:clear && \
-    php artisan view:clear
+# Set proper permissions
+RUN chown -R nobody:nobody /var/www && \
+    chmod -R 755 storage bootstrap/cache
 
-CMD ["php-fpm"]
+# Copy Nginx configuration
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/default.conf /etc/nginx/conf.d/default.conf
+
+# Copy Supervisor configuration
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create required directories
+RUN mkdir -p /var/run/nginx /var/log/supervisor
+
+# Expose port
+EXPOSE 10000
+
+# Start supervisor to manage both nginx and php-fpm
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

@@ -1,0 +1,66 @@
+services:
+  - type: web
+    name: vercetest
+    runtime: docker
+    plan: standard
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    region: oregon
+    healthCheckPath: /
+    envVars:
+      - key: APP_NAME
+        value: Vercetest
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        scope: RUN_AND_BUILD
+      - key: APP_KEY
+        scope: RUN_AND_BUILD
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_LEVEL
+        value: error
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        scope: RUN_AND_BUILD
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_DATABASE
+        fromDatabase:
+          name: vercetest-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: vercetest-db
+          property: username
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: vercetest-db
+          property: password
+      - key: CACHE_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: SESSION_DRIVER
+        value: file
+    depends:
+      - vercetest-db
+
+  - type: pserv
+    name: vercetest-db
+    runtime: mysql
+    plan: standard
+    region: oregon
+    ipAllowList: []
+    envVars:
+      - key: MYSQL_DATABASE
+        value: vercetest_db
+      - key: MYSQL_USER
+        value: vercetest_user
+      - key: MYSQL_PASSWORD
+        scope: RUN_AND_BUILD
+      - key: MYSQL_ROOT_PASSWORD
+        scope: RUN_AND_BUILD
