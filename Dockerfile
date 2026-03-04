@@ -9,37 +9,54 @@ RUN npm run build
 # Stage 2 - Production (Nginx + PHP-FPM)
 FROM php:8.4-fpm-alpine
 
-# Install system dependencies
+# Install system dependencies with more options
 RUN apk add --no-cache \
     git curl unzip libpq-dev oniguruma-dev libzip-dev \
     nginx supervisor bash postgresql-client \
-    && docker-php-ext-install pdo pdo_pgsql mbstring zip
+    icu-dev libxml2-dev libxslt-dev \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install pdo pdo_pgsql mbstring zip intl \
+    && docker-php-ext-install curl xml xmlrpc simplexml \
+    && docker-php-ext-enable pdo pdo_pgsql
+
+# Configure PHP for better performance
+RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory.ini && \
+    echo "upload_max_filesize = 100M" >> /usr/local/etc/php/conf.d/memory.ini && \
+    echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/memory.ini
 
 # Configure PHP-FPM to listen on TCP instead of socket
-RUN sed -i 's|listen = /run/php-fpm.sock|listen = 127.0.0.1:9000|g' /usr/local/etc/php-fpm.d/www.conf && \
-    sed -i 's|;listen.owner|listen.owner|g' /usr/local/etc/php-fpm.d/www.conf && \
-    sed -i 's|;listen.group|listen.group|g' /usr/local/etc/php-fpm.d/www.conf
+RUN sed -i 's|listen = /run/php-fpm.sock|listen = 127.0.0.1:9000|g' /usr/local/etc/php-fpm.d/www.conf
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Copy app files
+# Copy only composer files first for better caching
+COPY composer.json composer.lock* ./
+
+# Install PHP dependencies with verbose output and error handling
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-scripts \
+    2>&1 | tail -50
+
+# Copy rest of the app files
 COPY . .
 
 # Copy built frontend from Stage 1
-COPY --from=frontend /app/public/build ./public/build
+RUN mkdir -p ./public/build
+COPY --from=frontend /app/public/build/ ./public/build/
 
-# Create .env for build if it doesn't exist
+# Create .env for build
 RUN if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || echo "APP_KEY=" > .env; fi
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Attempt to cache configs (non-blocking - these might fail without DB)
-RUN php artisan config:cache || true && \
-    php artisan route:cache || true
+# Skip artisan commands that need DB connection
+# These will be run after deployment on Render
+RUN composer run-script post-autoload-dump 2>&1 | tail -20 || true
 
 # Set proper permissions
 RUN chown -R nobody:nobody /var/www && \
