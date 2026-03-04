@@ -15,9 +15,9 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_URL
-        scope: RUN_AND_BUILD
+        value: https://vercetest.onrender.com
       - key: APP_KEY
-        scope: RUN_AND_BUILD
+        value: base64:GENERATE_WITH_php_artisan_key_generate_--show
       - key: LOG_CHANNEL
         value: stack
       - key: LOG_LEVEL
@@ -25,7 +25,7 @@ services:
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
-        scope: RUN_AND_BUILD
+        value: mysql.render.com
       - key: DB_PORT
         value: "3306"
       - key: DB_DATABASE
@@ -33,26 +33,10 @@ services:
       - key: DB_USERNAME
         value: vercetest_user
       - key: DB_PASSWORD
-        scope: RUN_AND_BUILD
+        value: your_secure_password
       - key: CACHE_DRIVER
         value: file
       - key: QUEUE_CONNECTION
         value: sync
       - key: SESSION_DRIVER
         value: file
-
-  - type: pserv
-    name: vercetest-db
-    runtime: mysql
-    plan: standard
-    region: oregon
-    ipAllowList: []
-    envVars:
-      - key: MYSQL_DATABASE
-        value: vercetest_db
-      - key: MYSQL_USER
-        value: vercetest_user
-      - key: MYSQL_PASSWORD
-        scope: RUN_AND_BUILD
-      - key: MYSQL_ROOT_PASSWORD
-        scope: RUN_AND_BUILD
