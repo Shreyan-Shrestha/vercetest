@@ -12,7 +12,7 @@ FROM php:8.4-fpm-alpine
 # Install system dependencies
 RUN apk add --no-cache \
     git curl unzip libpq-dev oniguruma-dev libzip-dev \
-    nginx supervisor bash \
+    nginx supervisor bash postgresql-client \
     && docker-php-ext-install pdo pdo_pgsql mbstring zip
 
 # Configure PHP-FPM to listen on TCP instead of socket
@@ -31,11 +31,15 @@ COPY . .
 # Copy built frontend from Stage 1
 COPY --from=frontend /app/public/build ./public/build
 
+# Create .env for build if it doesn't exist
+RUN if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || echo "APP_KEY=" > .env; fi
+
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Attempt to cache configs (non-blocking - these might fail without DB)
+RUN php artisan config:cache || true && \
+    php artisan route:cache || true
 
 # Set proper permissions
 RUN chown -R nobody:nobody /var/www && \
